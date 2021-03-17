@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JS Client</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js"></script>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        var pos;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(getPosition);
+        } else {
+            alert("Oops! This browser does not support HTML Geolocation.");
+        }
+
+        function getPosition(position) {
+            pos = position;
+            centerMaps(position);
+        }
+
+        function centerMaps(position) {
+            var mapboxApiKey = 'pk.eyJ1Ijoia3VjaW5nYXBlcyIsImEiOiJjazk4eXFpbXgwNm8zM2tuMnhibXk4YjRwIn0.HMAEerCtOfeIEL6mU5iP_w'
+            mapboxgl.accessToken = mapboxApiKey;
+            var lat = position.coords.latitude
+            var lon = position.coords.longitude
+            var map = new mapboxgl.Map({
+                container: 'map', // container id
+                style: 'mapbox://styles/mapbox/streets-v11', // style URL
+                center: [lon, lat], // starting position [lng, lat]
+                zoom: 14 // starting zoom
+            });
+        }
+
+    </script>
+</head>
+<body>
+<script src="kotlin-js.js"></script>
+<div id="root"></div>
+</body>
+</html>
