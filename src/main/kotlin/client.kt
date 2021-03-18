@@ -37,28 +37,11 @@ val placeRepository: PlaceRepository = PlaceRepositoryImpl(httpClient)
 
 fun main() {
     window.onload = {
-        //document.head?.headConfig()
         document.body?.sayHello()
     }
 }
 
-fun Node.headConfig() {
-    append {
-        style {
-            unsafe {
-                raw(
-                    """
-                                
-                                
-                            """.trimIndent()
-                )
-            }
-        }
-    }
-}
-
 fun Node.sayHello() {
-
     append {
         div {
             id = "form"
@@ -85,7 +68,6 @@ fun Node.sayHello() {
                                     loaderClear()
                                     searchJob.job?.cancel()
                                     if (newString != null && newString.count() > 2) {
-                                        //search(newString)
                                         searchJob.param(newString)
                                     } else {
                                         removeList()
@@ -133,7 +115,6 @@ fun Node.sayHello() {
                                 text("Test")
                             }
                             onClickFunction = {
-                                //loaderShow()
                                 coordinateResult = CoordinateResult()
 
                                 console.log("start test")
@@ -326,20 +307,6 @@ fun showPolyline(coordinates: List<Location>) {
 
 fun removeLayer() {
     js("clearLayers()")
-}
-
-fun <T> debounce(
-    waitMs: Long = 800,
-    destinationFunction: (T) -> Unit
-): (T) -> Unit {
-    var debounceJob: Job? = null
-    return { param: T ->
-        debounceJob?.cancel()
-        debounceJob = GlobalScope.launch {
-            delay(waitMs)
-            destinationFunction(param)
-        }
-    }
 }
 
 fun <T> debounceJob(

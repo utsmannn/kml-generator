@@ -45,3 +45,20 @@ kotlin {
 tasks.register("stage") {
     dependsOn("build")
 }
+
+tasks.register<Copy>("copyDir") {
+    from("build/distributions")
+    into("../distributions")
+
+    dependsOn("openFolder")
+}
+
+tasks.register<Exec>("openFolder") {
+    commandLine("open", "../distributions")
+}
+
+tasks.register<Exec>("buildOpen") {
+    dependsOn("build")
+    dependsOn("copyDir")
+    commandLine("open", "../distributions/index.html")
+}
