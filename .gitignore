@@ -3,7 +3,7 @@
 .idea
 .DS_Store
 
-# Generated files
+# Generated files"
 .idea/**/contentModel.xml
 
 # Sensitive or high-churn files
