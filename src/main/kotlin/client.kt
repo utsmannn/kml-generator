@@ -2,30 +2,42 @@ import io.ktor.client.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
-import io.ktor.client.request.*
 import kotlinx.browser.document
 import kotlinx.browser.window
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.dom.clear
 import kotlinx.html.*
 import kotlinx.html.dom.append
-import kotlinx.html.js.*
-import kotlinx.html.script
-import kotlinx.html.style
-import kotlinx.serialization.json.JsonBuilder
+import kotlinx.html.js.div
+import kotlinx.html.js.onClickFunction
+import kotlinx.html.js.onInputFunction
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
-import kotlin.coroutines.resume
-import kotlin.js.Json
+import kotlin.js.Date
 
+const val hereApiKey = "rujdNo1Z-UlY47ipLzcvIkgXpiNSvdYdTxpiDRV-Z6I"
 
-val hereApiKey = "rujdNo1Z-UlY47ipLzcvIkgXpiNSvdYdTxpiDRV-Z6I"
+var isInputStartReady = false
+var isInputEndReady = false
+
+var coordinateResult = CoordinateResult()
+var inputIdFocus = ""
+
+val httpClient = HttpClient(Js) {
+    install(JsonFeature) {
+        serializer = KotlinxSerializer()
+    }
+}
+
+val placeRepository: PlaceRepository = PlaceRepositoryImpl(httpClient)
 
 fun main() {
     window.onload = {
-        document.head?.headConfig()
+        //document.head?.headConfig()
         document.body?.sayHello()
     }
 }
@@ -34,46 +46,22 @@ fun Node.headConfig() {
     append {
         style {
             unsafe {
-                raw("""
-                                body { margin: 0; padding: 0; }
-                               
-                                #map {
-                                   position: relative;
-                                   width: 100vw; height: 100vh;
-                                }
-                                #form {
-                                   position: absolute; z-index:10; margin: 10px;
-                                }
+                raw(
+                    """
                                 
-                                #card-content {
-                                   margin: 10px;
-                                }
-                                #input-container {
-                                    width: 30vw
-                                }
                                 
-                            """.trimIndent())
+                            """.trimIndent()
+                )
             }
         }
     }
 }
 
-var isInputStartReady = false
-var isInputEndReady = false
-
 fun Node.sayHello() {
-    var inputIdFocus = ""
-    val httpClient = HttpClient(Js) {
-        install(JsonFeature) {
-            serializer = KotlinxSerializer()
-        }
-    }
-    val placeRepository: PlaceRepository = PlaceRepositoryImpl(httpClient)
 
     append {
         div {
             id = "form"
-
             div(classes = "row") {
                 div(classes = "card col") {
                     id = "input-container"
@@ -83,37 +71,24 @@ fun Node.sayHello() {
                                 placeholder = "Start location"
                                 id = "inputStart"
 
-                                val search = debounce<String> {
+                                val searchJob = debounceJob<String> {
+                                    loaderShow()
                                     GlobalScope.launch {
                                         console.log("search for --> $it")
-                                        val location = getCoordinate()
-                                        when (val state = placeRepository.searchPlace(it, location, hereApiKey)) {
-                                            is SearchPlaceState.Success -> {
-                                                val data = state.data
-                                                console.log(data)
-
-                                                val newVal = document.getElementById("inputStart") as? HTMLInputElement
-                                                val mustVisible = (newVal?.value?.count() ?: 0) > 2
-                                                if (mustVisible) {
-                                                    createList(data, inputIdFocus)
-                                                } else {
-                                                    removeList()
-                                                }
-                                            }
-                                            is SearchPlaceState.Failed -> {
-                                                val error = state.reason
-                                                console.log(error)
-                                            }
-                                        }
+                                        searchApi(it)
                                     }
                                 }
-
 
                                 onInputFunction = {
                                     val newVal = document.getElementById("inputStart") as? HTMLInputElement
                                     val newString = newVal?.value
+                                    loaderClear()
+                                    searchJob.job?.cancel()
                                     if (newString != null && newString.count() > 2) {
-                                        search(newString)
+                                        //search(newString)
+                                        searchJob.param(newString)
+                                    } else {
+                                        removeList()
                                     }
 
                                     inputIdFocus = "inputStart"
@@ -125,36 +100,23 @@ fun Node.sayHello() {
                                 placeholder = "End location"
                                 id = "inputEnd"
 
-                                val search = debounce<String> {
+                                val searchJob = debounceJob<String> {
+                                    loaderShow()
                                     GlobalScope.launch {
                                         console.log("search for --> $it")
-                                        val location = getCoordinate()
-                                        when (val state = placeRepository.searchPlace(it, location, hereApiKey)) {
-                                            is SearchPlaceState.Success -> {
-                                                val data = state.data
-
-                                                val newVal = document.getElementById("inputEnd") as? HTMLInputElement
-                                                val mustVisible = (newVal?.value?.count() ?: 0) > 2
-
-                                                if (mustVisible) {
-                                                    createList(data, inputIdFocus)
-                                                } else {
-                                                    removeList()
-                                                }
-                                            }
-                                            is SearchPlaceState.Failed -> {
-                                                val error = state.reason
-                                                console.log(error)
-                                            }
-                                        }
+                                        searchApi(it)
                                     }
                                 }
 
                                 onInputFunction = {
                                     val newVal = document.getElementById("inputEnd") as? HTMLInputElement
                                     val newString = newVal?.value
+                                    loaderClear()
+                                    searchJob.job?.cancel()
                                     if (newString != null && newString.count() > 2) {
-                                        search(newString)
+                                        searchJob.param(newString)
+                                    } else {
+                                        removeList()
                                     }
 
                                     inputIdFocus = "inputEnd"
@@ -162,19 +124,23 @@ fun Node.sayHello() {
                             }
                         }
 
+                        div {
+                            id = "loader-container"
+                        }
+
                         button(classes = "btn waves-effect waves-light") {
                             p {
                                 text("Test")
                             }
                             onClickFunction = {
+                                //loaderShow()
+                                coordinateResult = CoordinateResult()
+
                                 console.log("start test")
                                 val coordinate = jsCoordinate()
-                                val latLng = coordinate.split(",").map { it.toDouble() }
 
                                 console.log("coor -> $coordinate")
-                                console.log("centering maps...")
-                                js("centerMaps(pos);")
-                                console.log("centering done...")
+                                console.log("clear done...")
                             }
                         }
                     }
@@ -192,6 +158,36 @@ fun Node.sayHello() {
     }
 }
 
+fun getHereApiKey(): String {
+    // logic for custom here api (future)
+    return hereApiKey
+}
+
+suspend fun searchApi(query: String) {
+    val location = getCoordinate()
+    when (val state = placeRepository.searchPlace(query, location, getHereApiKey())) {
+        is SearchPlaceState.Success -> {
+            val data = state.data
+            console.log(data)
+
+            val newVal = document.getElementById("inputStart") as? HTMLInputElement
+            val mustVisible = (newVal?.value?.count() ?: 0) > 2
+            if (mustVisible) {
+                createList(data, inputIdFocus)
+            } else {
+                removeList()
+            }
+
+            loaderClear()
+        }
+        is SearchPlaceState.Failed -> {
+            val error = state.reason
+            console.log(error)
+            showError(error)
+        }
+    }
+}
+
 fun getCoordinate(): Location {
     val coordinate = jsCoordinate()
     val latLng = coordinate.split(",").map { it.toDouble() }
@@ -199,35 +195,49 @@ fun getCoordinate(): Location {
 }
 
 fun jsCoordinate(): String {
-    return js("" +
-            "var position = [pos.coords.latitude, pos.coords.longitude];\n" +
-            "position.toString();" +
-            "") as String
+    return js(
+        "" +
+                "var position = [pos.coords.latitude, pos.coords.longitude];\n" +
+                "position.toString();" +
+                ""
+    ) as String
 }
 
 fun removeList() {
-    val doc = document.getElementById("container-list") as? HTMLDivElement
-    doc?.clear()
+    val element = document.getElementById("container-list") as? HTMLDivElement
+    element?.clear()
 }
 
-fun createList(newList: List<PlaceResponse>, inputIdFocus: String) {
-    val doc = document.getElementById("container-list") as? HTMLDivElement
-    console.log(newList)
-    doc?.clear()
-    doc?.append {
+fun createList(newList: List<Place>, inputIdFocus: String) {
+    val element = document.getElementById("container-list") as? HTMLDivElement
+    element?.clear()
+    element?.append {
         div(classes = "card") {
-            id = "container-2"
-            ul(classes = "collection") {
+            id = "container-scroll"
+            ul {
                 newList.forEach { item ->
-                    a(classes = "collection-item") {
-                        href = "#!"
+                    a {
+                        id = "item-container"
+                        href = "#"
                         onClickFunction = {
                             if (inputIdFocus == "inputStart") {
                                 isInputStartReady = true
+                                coordinateResult.apply {
+                                    from = item.location
+                                }
+                                GlobalScope.launch {
+                                    searchRoute()
+                                }
                             }
 
                             if (inputIdFocus == "inputEnd") {
                                 isInputEndReady = true
+                                coordinateResult.apply {
+                                    to = item.location
+                                }
+                                GlobalScope.launch {
+                                    searchRoute()
+                                }
                             }
 
                             val inputFocus = document.getElementById(inputIdFocus) as? HTMLInputElement
@@ -235,15 +245,15 @@ fun createList(newList: List<PlaceResponse>, inputIdFocus: String) {
                             removeList()
                         }
 
-                        div {
-                            p {
-                                text(item.title)
-                            }
-
-                            p {
-                                text(item.address)
-                            }
+                        p {
+                            id = "item-title"
+                            text(item.title)
                         }
+                        p {
+                            id = "item-address"
+                            text(item.address)
+                        }
+                        br
                     }
                 }
             }
@@ -251,8 +261,75 @@ fun createList(newList: List<PlaceResponse>, inputIdFocus: String) {
     }
 }
 
+fun loaderShow() {
+    val element = document.getElementById("loader-container") as? HTMLDivElement
+    element?.clear()
+    element?.append {
+        div("progress") {
+            div("indeterminate")
+        }
+    }
+}
+
+fun loaderClear() {
+    val element = document.getElementById("loader-container") as? HTMLDivElement
+    element?.clear()
+}
+
+fun showError(error: String) {
+    val element = document.getElementById("loader-container") as? HTMLDivElement
+    element?.clear()
+    console.log("show progress...")
+    element?.append {
+        div {
+            p {
+                id = "error-text"
+                text(error)
+            }
+        }
+    }
+}
+
+suspend fun searchRoute() {
+    if (coordinateResult.to.latitude != null && coordinateResult.from.latitude != null) {
+        removeLayer()
+        console.log(coordinateResult)
+
+        loaderShow()
+        when (val state = placeRepository.getRoutes(coordinateResult.from, coordinateResult.to, getHereApiKey())) {
+            is RoutePlaceState.Success -> {
+                val geocode = state.data.geocode
+                showPolyline(geocode)
+                loaderClear()
+            }
+            is RoutePlaceState.Failed -> {
+                val error = state.reason
+                console.log(error)
+                showError(error)
+            }
+        }
+    }
+}
+
+
+fun showPolyline(coordinates: List<Location>) {
+
+    val coorString = coordinates.map {
+        "[${it.longitude}, ${it.latitude}]"
+    }.toString().replace("[", "")
+        .replace("]", "")
+
+    val arrayCoor = js("stringToCoor(coorString)")
+    val randomId = Date().toDateString().replace(" ", "-")
+    js("zoomPoly(randomId, arrayCoor);")
+}
+
+fun removeLayer() {
+    js("clearLayers()")
+}
+
 fun <T> debounce(
-    waitMs: Long = 500,
+    waitMs: Long = 800,
     destinationFunction: (T) -> Unit
 ): (T) -> Unit {
     var debounceJob: Job? = null
@@ -264,3 +341,24 @@ fun <T> debounce(
         }
     }
 }
+
+fun <T> debounceJob(
+    waitMs: Long = 800,
+    destinationFunction: (T) -> Unit
+): DebounceJob<T> {
+    var debounceJob: Job? = null
+    val pa = { param: T ->
+        debounceJob?.cancel()
+        debounceJob = GlobalScope.launch {
+            delay(waitMs)
+            destinationFunction(param)
+        }
+    }
+
+    return DebounceJob(pa, debounceJob)
+}
+
+data class DebounceJob<T>(
+    val param: (T) -> Unit,
+    val job: Job?
+)

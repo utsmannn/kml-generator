@@ -20,7 +20,6 @@ dependencies {
 
     implementation("io.ktor:ktor-client-core:1.5.2")
     implementation("io.ktor:ktor-client-serialization:1.5.2")
-    //implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.1.0")
 }
 
 kotlin {

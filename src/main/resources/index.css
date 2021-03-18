@@ -1,0 +1,44 @@
+
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+#map {
+    position: relative;
+    width: 100vw; height: 100vh;
+}
+#form {
+    position: absolute; z-index:10; margin: 10px;
+}
+
+#card-content {
+    margin: 10px;
+}
+
+#input-container {
+    width: 20vw;
+}
+
+#container-scroll {
+    min-width: 150px;
+    height: auto;
+    max-height: 70vh;
+    overflow: auto;
+    padding: 2%;
+}
+
+#item-title {
+    font-weight: bold;
+    margin: 0px !important;
+}
+
+#item-address {
+    margin: 0px !important;
+}
+
+#error-text {
+    color: red;
+    margin-bottom: 20px;
+}
