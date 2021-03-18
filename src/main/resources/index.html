@@ -109,13 +109,27 @@
             var coordinates = geojson.features[0].geometry.coordinates;
 
             var bounds = coordinates.reduce(function (bounds, coord) {
-                  return bounds.extend(coord);
-                }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+              return bounds.extend(coord);
+            }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
 
-                map.fitBounds(bounds, {
-                  padding: 240
-                });
+            map.fitBounds(bounds, {
+              padding: 240
+            });
+        }
 
+        function download(filename, text) {
+            var pom = document.createElement('a');
+            pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            pom.setAttribute('download', filename);
+
+            if (document.createEvent) {
+                var event = document.createEvent('MouseEvents');
+                event.initEvent('click', true, true);
+                pom.dispatchEvent(event);
+            }
+            else {
+                pom.click();
+            }
         }
 
     </script>

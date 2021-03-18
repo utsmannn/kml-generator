@@ -35,6 +35,8 @@ val httpClient = HttpClient(Js) {
 
 val placeRepository: PlaceRepository = PlaceRepositoryImpl(httpClient)
 
+var currentCoordinate: List<Location> = emptyList()
+
 fun main() {
     window.onload = {
         document.body?.sayHello()
@@ -110,19 +112,8 @@ fun Node.sayHello() {
                             id = "loader-container"
                         }
 
-                        button(classes = "btn waves-effect waves-light") {
-                            p {
-                                text("Test")
-                            }
-                            onClickFunction = {
-                                coordinateResult = CoordinateResult()
-
-                                console.log("start test")
-                                val coordinate = jsCoordinate()
-
-                                console.log("coor -> $coordinate")
-                                console.log("clear done...")
-                            }
+                        div {
+                            id = "button-container"
                         }
                     }
                 }
@@ -135,6 +126,40 @@ fun Node.sayHello() {
 
         div {
             id = "map"
+        }
+
+        showButtonDownload(false)
+    }
+}
+
+fun showButtonDownload(enable: Boolean) {
+    val element = document.getElementById("button-container") as? HTMLDivElement
+    element?.clear()
+    if (enable) {
+        element?.append {
+            button(classes = "btn waves-effect waves-light") {
+                p {
+                    text("Download KML")
+                }
+                onClickFunction = {
+                    coordinateResult = CoordinateResult()
+
+                    console.log("start test")
+                    val coordinate = jsCoordinate()
+
+                    console.log("coor -> $coordinate")
+                    console.log("clear done...")
+                    downloadKml()
+                }
+            }
+        }
+    } else {
+        element?.append {
+            button(classes = "btn waves-effect waves-light disabled") {
+                p {
+                    text("Download KML")
+                }
+            }
         }
     }
 }
@@ -281,6 +306,8 @@ suspend fun searchRoute() {
             is RoutePlaceState.Success -> {
                 val geocode = state.data.geocode
                 showPolyline(geocode)
+                showButtonDownload(true)
+
                 loaderClear()
             }
             is RoutePlaceState.Failed -> {
@@ -289,12 +316,14 @@ suspend fun searchRoute() {
                 showError(error)
             }
         }
+    } else {
+        showButtonDownload(false)
     }
 }
 
 
 fun showPolyline(coordinates: List<Location>) {
-
+    currentCoordinate = coordinates
     val coorString = coordinates.map {
         "[${it.longitude}, ${it.latitude}]"
     }.toString().replace("[", "")
@@ -307,6 +336,29 @@ fun showPolyline(coordinates: List<Location>) {
 
 fun removeLayer() {
     js("clearLayers()")
+}
+
+fun downloadKml() {
+    val coordinate = currentCoordinate.map {
+        "[${it.longitude}+${it.latitude}+0]"
+    }.toString().replace("[", "")
+        .replace("]", "")
+        .replace(",", " ")
+        .replace("+", ",")
+
+    val templateKml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <kml xmlns="http://www.opengis.net/kml/2.2">
+        <Document>
+        <name>Shapes</name><Style id="thickLine"><LineStyle><width>2.5</width></LineStyle></Style>
+        <Placemark>
+        <name>Shape</name>
+        <description>Shape</description>
+        <LineString><coordinates>$coordinate</coordinates></LineString><styleUrl>#thickLine</styleUrl></Placemark>
+        </Document>
+        </kml>
+    """.trimIndent()
+    js("download('generate.kml', templateKml);")
 }
 
 fun <T> debounceJob(
