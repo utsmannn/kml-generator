@@ -57,6 +57,12 @@ tasks.register<Exec>("openFolder") {
     commandLine("open", "../distributions")
 }
 
+tasks.register<Exec>("buildFolder") {
+    dependsOn("build")
+    dependsOn("copyDir")
+    dependsOn("openFolder")
+}
+
 tasks.register<Exec>("buildOpen") {
     dependsOn("build")
     dependsOn("copyDir")

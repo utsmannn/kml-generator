@@ -39,11 +39,12 @@ var currentCoordinate: List<Location> = emptyList()
 
 fun main() {
     window.onload = {
-        document.body?.sayHello()
+        val mainContainer = document.getElementById("container-main") as? HTMLDivElement
+        mainContainer?.setup()
     }
 }
 
-fun Node.sayHello() {
+fun Node.setup() {
     append {
         div {
             id = "form"
@@ -124,10 +125,6 @@ fun Node.sayHello() {
             }
         }
 
-        div {
-            id = "map"
-        }
-
         showButtonDownload(false)
     }
 }
@@ -142,13 +139,6 @@ fun showButtonDownload(enable: Boolean) {
                     text("Download KML")
                 }
                 onClickFunction = {
-                    coordinateResult = CoordinateResult()
-
-                    console.log("start test")
-                    val coordinate = jsCoordinate()
-
-                    console.log("coor -> $coordinate")
-                    console.log("clear done...")
                     downloadKml()
                 }
             }
@@ -320,7 +310,6 @@ suspend fun searchRoute() {
         showButtonDownload(false)
     }
 }
-
 
 fun showPolyline(coordinates: List<Location>) {
     currentCoordinate = coordinates
