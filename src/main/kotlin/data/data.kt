@@ -1,3 +1,5 @@
+package data
+
 import kotlinx.serialization.Serializable
 
 enum class ModeType {

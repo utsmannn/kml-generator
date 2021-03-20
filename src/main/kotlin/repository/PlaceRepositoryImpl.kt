@@ -1,3 +1,10 @@
+package repository
+
+import data.Location
+import data.PlaceResponses
+import data.RoutePlaceState
+import data.RouteResponse
+import data.SearchPlaceState
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
@@ -49,7 +56,7 @@ class PlaceRepositoryImpl(private val httpClient: HttpClient) : PlaceRepository 
             if (!data.isNullOrEmpty()) {
                 SearchPlaceState.Success(data)
             } else {
-                SearchPlaceState.Failed("Place not found")
+                SearchPlaceState.Failed("data.Place not found")
             }
         }
     }
@@ -84,12 +91,12 @@ class PlaceRepositoryImpl(private val httpClient: HttpClient) : PlaceRepository 
             if (data != null) {
                 RoutePlaceState.Success(data = response.route)
             } else {
-                RoutePlaceState.Failed("Route not found")
+                RoutePlaceState.Failed("data.Route not found")
             }
         }
     }
 
-    /*override suspend fun reverseSearchPlace(hereApiKey: String): SearchPlaceState {
+    /*override suspend fun reverseSearchPlace(hereApiKey: String): data.SearchPlaceState {
         val response =  try {
             httpClient.get {
                 url(getReverseSearchUrl(hereApiKey))
@@ -104,13 +111,13 @@ class PlaceRepositoryImpl(private val httpClient: HttpClient) : PlaceRepository 
 
         val isError = response.errorDescription != null && response.items == null
         return if (isError) {
-            SearchPlaceState.Failed(response.errorDescription ?: "Failed")
+            data.SearchPlaceState.Failed(response.errorDescription ?: "Failed")
         } else {
             val data = response.items?.map { it.mapToPlaceResponse() }
             if (!data.isNullOrEmpty()) {
-                SearchPlaceState.Success(data)
+                data.SearchPlaceState.Success(data)
             } else {
-                SearchPlaceState.Failed("Place not found")
+                data.SearchPlaceState.Failed("data.Place not found")
             }
         }
     }*/

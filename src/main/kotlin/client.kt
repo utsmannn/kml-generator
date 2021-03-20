@@ -1,3 +1,4 @@
+import data.*
 import io.ktor.client.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.features.json.*
@@ -17,6 +18,8 @@ import kotlinx.html.js.onInputFunction
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.Node
+import repository.PlaceRepository
+import repository.PlaceRepositoryImpl
 import kotlin.js.Date
 
 const val hereApiKey = "rujdNo1Z-UlY47ipLzcvIkgXpiNSvdYdTxpiDRV-Z6I"

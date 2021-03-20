@@ -1,4 +1,4 @@
-
+package data
 
 sealed class SearchPlaceState {
     data class Success(val data: List<Place>) : SearchPlaceState()
