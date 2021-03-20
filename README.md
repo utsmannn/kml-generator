@@ -5,7 +5,7 @@ Build with Kotlin-JS
 https://utsmannn.github.io/kml-generator/
 
 ### Screenshot
-[!](img/img1.png)
+![](img/img1.png)
 
 ### Feature
 - Search location using HEREMAP API and Kotlin Ktor
