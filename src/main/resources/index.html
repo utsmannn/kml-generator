@@ -11,10 +11,13 @@
     <link rel="stylesheet" href="index.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    </script>
 </head>
 <body>
 <div id="container-main"></div>
-<div id="map"></div>
+<div id="container-map"></div>
 <script src="kotlin-js.js"></script>
 <div id="root"></div>
 <script src="index.js"></script>

@@ -40,7 +40,38 @@ var currentCoordinate: List<Location> = emptyList()
 fun main() {
     window.onload = {
         val mainContainer = document.getElementById("container-main") as? HTMLDivElement
-        mainContainer?.setup()
+        val mapContainer = document.getElementById("container-map") as? HTMLDivElement
+
+        val isMobile = js("setupIsMobile()").unsafeCast<Boolean>()
+        console.log("ismobile -> $isMobile")
+
+        if (isMobile) {
+            mapContainer?.displayMobile()
+        } else {
+            mapContainer?.displayMap()
+            mainContainer?.setup()
+        }
+    }
+}
+
+fun Node.displayMap() {
+    append {
+        div {
+            id = "map"
+        }
+    }
+    js("initMap()")
+    js("requestLocation()")
+}
+
+fun Node.displayMobile() {
+    append {
+        div {
+            p{
+                id = "text-mobile"
+                text("Not available on mobile!")
+            }
+        }
     }
 }
 
@@ -196,7 +227,7 @@ fun jsCoordinate(): String {
                 "var position = [pos.coords.latitude, pos.coords.longitude];\n" +
                 "position.toString();" +
                 ""
-    ) as String
+    ).unsafeCast<String>()
 }
 
 fun removeList() {
@@ -241,7 +272,7 @@ fun createList(newList: List<Place>, inputIdFocus: String) {
                             removeList()
                         }
 
-                        p {
+                        p(classes = "text-gray") {
                             id = "item-title"
                             text(item.title)
                         }

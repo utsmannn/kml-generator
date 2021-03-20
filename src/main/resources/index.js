@@ -1,26 +1,42 @@
-
 var pos;
-var layerId = 'layer-id'
+const layerId = 'layer-id';
 
-var mapboxApiKey = 'pk.eyJ1Ijoia3VjaW5nYXBlcyIsImEiOiJjazk4eXFpbXgwNm8zM2tuMnhibXk4YjRwIn0.HMAEerCtOfeIEL6mU5iP_w'
+const mapboxApiKey = 'pk.eyJ1Ijoia3VjaW5nYXBlcyIsImEiOiJjazk4eXFpbXgwNm8zM2tuMnhibXk4YjRwIn0.HMAEerCtOfeIEL6mU5iP_w';
 mapboxgl.accessToken = mapboxApiKey;
 
-var map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
-    center: [106.816666, -6.200000],
-    zoom: 14
-});
+let map;
 
-if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(getPosition);
-} else {
-    alert("Oops! This browser does not support HTML Geolocation.");
+function initMap() {
+    map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [106.816666, -6.200000],
+        zoom: 14
+    });
+}
+
+function requestLocation() {
+    if (navigator.geolocation) {
+        console.log(isMobile)
+        navigator.geolocation.getCurrentPosition(getPosition);
+    } else {
+        alert("Oops! This browser does not support HTML Geolocation.");
+    }
 }
 
 function getPosition(position) {
     pos = position;
     centerMaps(position);
+}
+
+function setupIsMobile() {
+    if (isMobile) {
+        console.log("is mobile")
+    } else {
+        console.log("is not mobile")
+    }
+
+    return isMobile
 }
 
 function centerMaps(position) {
@@ -43,7 +59,7 @@ function stringToCoor(rawString) {
     var b = string.length / 2;
     var array = [];
     for (i = 0; i < b; i++) {
-            array[i] = [0, 0];
+        array[i] = [0, 0];
     }
 
     var k = 0;
@@ -101,11 +117,11 @@ function zoomPoly(lineId, coorString) {
     var coordinates = geojson.features[0].geometry.coordinates;
 
     var bounds = coordinates.reduce(function (bounds, coord) {
-      return bounds.extend(coord);
+        return bounds.extend(coord);
     }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
 
     map.fitBounds(bounds, {
-      padding: 220
+        padding: 220
     });
 }
 
@@ -118,8 +134,7 @@ function download(filename, text) {
         var event = document.createEvent('MouseEvents');
         event.initEvent('click', true, true);
         pom.dispatchEvent(event);
-    }
-    else {
+    } else {
         pom.click();
     }
 }

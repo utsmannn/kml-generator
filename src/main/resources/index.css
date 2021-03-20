@@ -5,6 +5,14 @@ body {
     padding: 0;
 }
 
+#text-mobile {
+    text-align: center;
+}
+
+.text-gray {
+    color: dimgrey;
+}
+
 #map {
     position: relative;
     width: 100vw; height: 100vh;
